@@ -1,0 +1,9 @@
+id: DataAPIPublicCache
+name: DataAPIPublicCache
+version: 1.00
+
+init_app: DataAPIPublicCache::init_app
+
+config_settings:
+    DataAPIPublicCacheHookObjects:
+        default: MT::Asset,MT::Category,MT::User,MT::Blog,MT::Comment,MT::Entry,MT::TBPing,MT::Website
