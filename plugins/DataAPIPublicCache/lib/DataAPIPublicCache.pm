@@ -10,29 +10,70 @@ sub cache_directory {
         'data-api-public-cache' );
 }
 
+sub _put_data {
+    my ( $app, $fmgr, $data, $file ) = @_;
+
+    my $enc     = $app->charset || 'UTF-8';
+    my $dir     = File::Basename::dirname($file);
+    my $cur_dir = $dir;
+
+    my @dirs = ();
+    for (
+        my $parent_dir = File::Basename::dirname($cur_dir);
+        $cur_dir && $cur_dir ne $parent_dir;
+        $cur_dir    = $parent_dir,
+        $parent_dir = File::Basename::dirname($cur_dir)
+        )
+    {
+        if ( my $base = File::Basename::basename($cur_dir) ) {
+            unshift @dirs, $base;
+        }
+    }
+
+    require Cwd;
+    my $status = 1;
+    my $cwd    = Cwd::getcwd();
+    if ( $dir =~ m{^/} ) {
+        chdir '/';
+    }
+    for (@dirs) {
+        if ( !$fmgr->exists($_) ) {
+            if ( !$fmgr->mkpath($_) ) {
+                $status = 0;
+                last;
+            }
+        }
+        chdir $_;
+    }
+
+    if (!$fmgr->put_data(
+            Encode::encode( $enc, $data ),
+            File::Basename::basename($file)
+        )
+        )
+    {
+        $status = 0;
+    }
+    chdir $cwd;
+
+    $status;
+}
+
 sub write_cache {
     my ( $app, $data ) = @_;
 
     my $basename = cache_basename()
         or return;
 
-    my $fmgr = MT::FileMgr->new('Local');
-    my $enc = $app->charset || 'UTF-8';
-
     my $cachefile = File::Spec->catfile( cache_directory($app), $basename );
-    my $dirname   = File::Basename::dirname($cachefile);
-    my @mkdirs    = ();
-    for (
-        ;
-        !$fmgr->exists($dirname);
-        $dirname = File::Basename::dirname($dirname)
-        )
-    {
-        unshift @mkdirs, $dirname;
-    }
-    $fmgr->mkpath($_) for @mkdirs;
 
-    $fmgr->put_data( Encode::encode( $enc, $data ), $cachefile );
+    my $fmgr = MT::FileMgr->new('Local');
+    if ( !_put_data( $app, $fmgr, $data, $cachefile ) ) {
+        $app->log( $fmgr->errstr );
+        return;
+    }
+
+    return 1;
 }
 
 sub cache_basename {
