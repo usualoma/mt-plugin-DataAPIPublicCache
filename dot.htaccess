@@ -6,6 +6,9 @@ RewriteCond %{REQUEST_METHOD} =GET
 RewriteCond %{QUERY_STRING} ^[a-zA-Z0-9!""\$\%\&\'\(\)\=\~\^\|\\\{\[\`\@\}\]\*\:\+\;\_\?\/\>\.\<\,-]*$
 RewriteRule data-api.cgi/(v.*) mt-static/support/data-api-public-cache/$1/%{QUERY_STRING}c.js [N,E=HTTP_X_DATA_API_PUBLIC_CACHE_TRY:1]
 
+RewriteRule (mt-static/support/data-api-public-cache/.*?)%(.*?)%(.*?)%(.*?)%(.*?)%(.*?)%(.*?)%(.*?)%(.*c.js)/v\d+ "$1 $2 $3 $4 $5 $6 $7 $8 $9" [N]
+RewriteRule (mt-static/support/data-api-public-cache/.*?)%(.*?)%(.*?)%(.*?)%(.*c.js)/v\d+ "$1 $2 $3 $4 $5" [N]
+RewriteRule (mt-static/support/data-api-public-cache/.*?)%(.*?)%(.*c.js)/v\d+ "$1 $2 $3" [N]
 RewriteRule (mt-static/support/data-api-public-cache/.*?)%(.*c.js)/v\d+ "$1 $2" [N]
 RewriteRule (mt-static/support/data-api-public-cache/.*?)/\.\.(.*c.js)/v\d+ $1/_..@$2 [N]
 RewriteRule (mt-static/support/data-api-public-cache/.*?)(/[^/]{250})([^/].*c.js)/v\d+ $1$2/$3 [N]
