@@ -71,7 +71,11 @@ sub init_callbacks {
                     unless grep { $_ eq $obj_type } split ',',
                     $app->config->DataAPIPublicCacheHookObjects;
 
+                my $dir  = cache_directory($app);
                 my $fmgr = MT::FileMgr->new('Local');
+
+                return 1 unless $fmgr->exists($dir);
+
                 require File::Find;
                 File::Find::find(
                     {   wanted => sub {
@@ -80,7 +84,7 @@ sub init_callbacks {
                         bydepth  => 1,
                         no_chdir => 1,
                     },
-                    cache_directory($app)
+                    $dir
                 );
 
                 return 1;
